@@ -80,7 +80,7 @@ In `install.sh` github source and script release variables should change every r
 ## Sponsors ✨
 
 I would like to extend my sincere thanks to the following sponsors for helping fund Pelinstaller's development.
-[Interested in becoming a sponsor?](mailto:me@matthew.expert)
+[Interested in becoming a sponsor?](mailto:git@matthew.network)
 
 | Company                                                   | About                                                                                                                                                                                                                                           |
 |-----------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|

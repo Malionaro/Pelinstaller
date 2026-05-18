@@ -7,7 +7,7 @@ set -e
 # Project 'Pelinstaller'                                                        #
 #                                                                                    #
 # Copyright (C) 2018 - 2024, Vilhelm Prytz, <vilhelm@prytznet.se>                    #
-# Copyright (C) 2021 - 2024, Matthew Jacob, <me@matthew.expert>                      #
+# Copyright (C) 2021 - 2024, Matthew Jacob, <git@matthew.network>                      #
 #                                                                                    #
 #   This program is free software: you can redistribute it and/or modify             #
 #   it under the terms of the GNU General Public License as published by             #
