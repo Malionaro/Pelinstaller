@@ -4,7 +4,7 @@ set -e
 
 ######################################################################################
 #                                                                                    #
-# Project 'pelican-installer'                                                        #
+# Project 'Pelinstaller'                                                        #
 #                                                                                    #
 # Copyright (C) 2018 - 2024, Vilhelm Prytz, <vilhelm@prytznet.se>                    #
 # Copyright (C) 2021 - 2024, Matthew Jacob, <me@matthew.expert>                      #
@@ -22,18 +22,18 @@ set -e
 #   You should have received a copy of the GNU General Public License                #
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.           #
 #                                                                                    #
-# https://github.com/pelican-installer/pelican-installer/blob/Production/LICENSE.md  #
+# https://github.com/Zinidia/Pelinstaller/blob/Production/LICENSE.md  #
 #                                                                                    #
 # This script is not associated with the official Pelican Project.                   #
-# https://github.com/pelican-installer/pelican-installer                             #
+# https://github.com/Zinidia/Pelinstaller                             #
 #                                                                                    #
 ######################################################################################
 
 export GITHUB_SOURCE="Production"
 export SCRIPT_RELEASE="canary"
-export GITHUB_BASE_URL="https://raw.githubusercontent.com/pelican-installer/pelican-installer"
+export GITHUB_BASE_URL="https://raw.githubusercontent.com/Zinidia/Pelinstaller"
 
-LOG_PATH="/var/log/pelican-installer.log"
+LOG_PATH="/var/log/pelinstaller.log"
 
 output() {
   echo "* ${1}"
@@ -82,7 +82,7 @@ curl -sSL -o /tmp/lib.sh "$GITHUB_BASE_URL/$GITHUB_SOURCE"/lib/lib.sh
 source /tmp/lib.sh
 
 execute() {
-  echo -e "\n\n* pelican-installer $(date) \n\n" >>$LOG_PATH
+  echo -e "\n\n* Pelinstaller $(date) \n\n" >>$LOG_PATH
 
   [[ "$1" == *"canary"* ]] && export GITHUB_SOURCE="Production" && export SCRIPT_RELEASE="canary"
   update_lib_source

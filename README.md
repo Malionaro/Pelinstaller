@@ -36,7 +36,7 @@ Here is a [YouTube Video](https://www.youtube.com/watch?v=E8UJhyUFoHM) that illu
 
 ## Help and support
 
-For help and support regarding the script itself and **not the official Pelican project**, create a [Github Issue](https://github.com/pelican-installer/pelican-installer/issues).
+For help and support regarding the script itself and **not the official Pelican project**, create a [Github Issue](https://github.com/Zinidia/Pelinstaller/issues).
 
 ## Supported installations
 
@@ -74,7 +74,7 @@ The installation scripts can install and configure a firewall for you. The scrip
 
 ### Creating a release
 
-In `install.sh` github source and script release variables should change every release. Firstly, update the `CHANGELOG.md` so that the release date and release tag are both displayed. No changes should be made to the changelog points themselves. Secondly, update `GITHUB_SOURCE` and `SCRIPT_RELEASE` in `install.sh`. Finally, you can now push a commit with the message `Release vX.Y.Z`. Create a release on GitHub. See [this commit](https://github.com/pelican-installer/pelican-installer/commit/90aaae10785f1032fdf90b216a4a8d8ca64e6d44) for reference.
+In `install.sh` github source and script release variables should change every release. Firstly, update the `CHANGELOG.md` so that the release date and release tag are both displayed. No changes should be made to the changelog points themselves. Secondly, update `GITHUB_SOURCE` and `SCRIPT_RELEASE` in `install.sh`. Finally, you can now push a commit with the message `Release vX.Y.Z`. Create a release on GitHub. See [this commit](https://github.com/Zinidia/Pelinstaller/commit/90aaae10785f1032fdf90b216a4a8d8ca64e6d44) for reference.
 
 
 ## Sponsors ✨

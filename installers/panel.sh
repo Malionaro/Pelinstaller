@@ -4,7 +4,7 @@ set -e
 
 ######################################################################################
 #                                                                                    #
-# Project 'pelican-installer'                                                        #
+# Project 'Pelinstaller'                                                        #
 #                                                                                    #
 # Copyright (C) 2018 - 2024, Vilhelm Prytz, <vilhelm@prytznet.se>                    #
 # Copyright (C) 2021 - 2024, Matthew Jacob, <me@matthew.expert>                      #
@@ -22,10 +22,10 @@ set -e
 #   You should have received a copy of the GNU General Public License                #
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.           #
 #                                                                                    #
-# https://github.com/pelican-installer/pelican-installer/blob/Production/LICENSE.md  #
+# https://github.com/Zinidia/Pelinstaller/blob/Production/LICENSE.md  #
 #                                                                                    #
 # This script is not associated with the official Pelican Project.                   #
-# https://github.com/pelican-installer/pelican-installer                             #
+# https://github.com/Zinidia/Pelinstaller                             #
 #                                                                                    #
 ######################################################################################
 
@@ -178,32 +178,44 @@ set_folder_permissions() {
 insert_cronjob() {
   output "Installing cronjob.. "
 
-  crontab -l | {
+  local web_user
+  case "$OS" in
+  ubuntu | debian)
+    web_user="www-data"
+    ;;
+  rocky | almalinux)
+    web_user="nginx"
+    ;;
+  esac
+
+  (crontab -u "$web_user" -l 2>/dev/null || true) | {
     cat
-    output "* * * * php /var/www/pelican/artisan schedule:run >> /dev/null 2>&1"
-  } | crontab -
+    echo "* * * * * php /var/www/pelican/artisan schedule:run >> /dev/null 2>&1"
+  } | crontab -u "$web_user" -
 
   success "Cronjob installed!"
 }
 
-install_pteroq() {
-  output "Installing pteroq service.."
+install_pelican_queue() {
+  output "Installing pelican-queue service.."
 
-  curl -o /etc/systemd/system/pteroq.service "$GITHUB_URL"/configs/pteroq.service
-
+  local web_user
   case "$OS" in
   ubuntu | debian)
-    sed -i -e "s@<user>@www-data@g" /etc/systemd/system/pteroq.service
+    web_user="www-data"
     ;;
   rocky | almalinux)
-    sed -i -e "s@<user>@nginx@g" /etc/systemd/system/pteroq.service
+    web_user="nginx"
     ;;
   esac
 
-  systemctl enable pteroq.service
-  systemctl start pteroq
+  php /var/www/pelican/artisan p:environment:queue-service --user="$web_user" --group="$web_user" --overwrite
 
-  success "Installed pteroq!"
+  systemctl daemon-reload
+  systemctl enable pelican-queue.service
+  systemctl start pelican-queue
+
+  success "Installed pelican-queue!"
 }
 
 # -------- OS specific install functions ------- #
@@ -413,7 +425,7 @@ perform_install() {
   create_db "$MYSQL_DB" "$MYSQL_USER"
   configure
   insert_cronjob
-  install_pteroq
+  install_pelican_queue
   configure_nginx
   [ "$CONFIGURE_LETSENCRYPT" == true ] && letsencrypt
   set_folder_permissions

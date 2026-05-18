@@ -4,7 +4,7 @@ set -e
 
 ######################################################################################
 #                                                                                    #
-# Project 'pelican-installer'                                                        #
+# Project 'Pelinstaller'                                                        #
 #                                                                                    #
 # Copyright (C) 2018 - 2024, Vilhelm Prytz, <vilhelm@prytznet.se>                    #
 # Copyright (C) 2021 - 2024, Matthew Jacob, <me@matthew.expert>                      #
@@ -22,10 +22,10 @@ set -e
 #   You should have received a copy of the GNU General Public License                #
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.           #
 #                                                                                    #
-# https://github.com/pelican-installer/pelican-installer/blob/Production/LICENSE.md  #
+# https://github.com/Zinidia/Pelinstaller/blob/Production/LICENSE.md  #
 #                                                                                    #
 # This script is not associated with the official Pelican Project.                   #
-# https://github.com/pelican-installer/pelican-installer                             #
+# https://github.com/Zinidia/Pelinstaller                             #
 #                                                                                    #
 ######################################################################################
 
@@ -76,6 +76,8 @@ rm_wings_files() {
 
 rm_services() {
   output "Removing services..."
+  systemctl disable --now pelican-queue
+  rm -rf /etc/systemd/system/pelican-queue.service
   systemctl disable --now pteroq
   rm -rf /etc/systemd/system/pteroq.service
   case "$OS" in
