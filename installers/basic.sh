@@ -25,7 +25,7 @@ export SUPPORTED=false
 # Download URLs
 export PANEL_DL_URL="https://github.com/pelican-dev/panel/releases/latest/download/panel.tar.gz"
 export WINGS_DL_URL="https://github.com/pelican-dev/wings/releases/latest/download/wings_linux_"
-export GIT_REPO_URL="https://raw.githubusercontent.com/pelican-installer/pelican-installer/Production"
+export GIT_REPO_URL="https://raw.githubusercontent.com/Zinidia/Pelinstaller/Production"
 
 # Colors
 COLOR_YELLOW='\033[1;33m'
@@ -241,7 +241,7 @@ configure_env() {
   done
 
   # Fill in environment:setup automatically
-  php artisan p:environment:setup
+  php artisan p:environment:setup -n
   sed -i "s|^APP_URL=.*|APP_URL=${app_url}|" .env
   sed -i "s|^APP_INSTALLED=false|APP_INSTALLED=true|" .env
 
@@ -312,32 +312,44 @@ set_folder_permissions() {
 insert_cronjob() {
   output "Installing cronjob.. "
 
-  crontab -l | {
+  local web_user
+  case "$OS" in
+  ubuntu | debian)
+    web_user="www-data"
+    ;;
+  rocky | almalinux)
+    web_user="nginx"
+    ;;
+  esac
+
+  (crontab -u "$web_user" -l 2>/dev/null || true) | {
     cat
-    output "* * * * php /var/www/pelican/artisan schedule:run >> /dev/null 2>&1"
-  } | crontab -
+    echo "* * * * * php /var/www/pelican/artisan schedule:run >> /dev/null 2>&1"
+  } | crontab -u "$web_user" -
 
   success "Cronjob installed!"
 }
 
-pteroq_systemd() {
-  output "Installing pteroq service.."
+pelican_queue_systemd() {
+  output "Installing pelican-queue service.."
 
-  curl -o /etc/systemd/system/pteroq.service "$GIT_REPO_URL"/configs/pteroq.service
-
+  local web_user
   case "$OS" in
   ubuntu | debian)
-    sed -i -e "s@<user>@www-data@g" /etc/systemd/system/pteroq.service
+    web_user="www-data"
     ;;
   rocky | almalinux)
-    sed -i -e "s@<user>@nginx@g" /etc/systemd/system/pteroq.service
+    web_user="nginx"
     ;;
   esac
 
-  systemctl enable pteroq.service
-  systemctl start pteroq
+  php /var/www/pelican/artisan p:environment:queue-service --user="$web_user" --group="$web_user" --overwrite
 
-  success "Installed pteroq systemd service!"
+  systemctl daemon-reload
+  systemctl enable pelican-queue.service
+  systemctl start pelican-queue
+
+  success "Installed pelican-queue systemd service!"
 }
 
 # -------- OS specific install functions ------- #
@@ -518,7 +530,7 @@ wings_deps() {
 wings_dl() {
   echo "* Downloading Pelican Wings.. "
 
-  mkdir -p /etc/pelican
+  mkdir -p /etc/pelican /var/run/wings
   curl -L -o /usr/local/bin/wings "$WINGS_DL_URL$ARCH"
 
   chmod u+x /usr/local/bin/wings
@@ -549,7 +561,7 @@ create_db_user "pelican" "$MYSQL_PASSWORD"
 create_db "panel" "pelican"
 configure_env
 insert_cronjob
-pteroq_systemd
+pelican_queue_systemd
 configure_nginx
 install_firewall
 firewall_ports "22 80 443 8080 2022"

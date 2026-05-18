@@ -4,7 +4,7 @@
 
 <table><tr></tr><tr><td>
 
-### ‚ö†Ô∏è Pelican is in beta so this script may not work if breaking changes are made, this script will also be recoded to use Docker Compose in the coming days :construction:
+### ?†Ô? Pelican is in beta so this script may not work if breaking changes are made, this script will also be recoded to use Docker Compose in the coming days :construction:
 
 Welcome to the Pelinstaller repository! This installer is a hard fork of [ForestRacks's Pterodactyl Installer](https://github.com/ForestRacks/PteroInstaller) and is specifically designed for people to easily install and set up the Pelican on Debian-based or RHEL-based machines. If you encounter any issues during the installation process, post an issue on our GitHub repository for assistance.
 
@@ -22,7 +22,7 @@ bash <(curl -Ss https://raw.githubusercontent.com/Zinidia/Pelinstaller/Productio
 
 _Note: On some systems, it's required to be already logged in as root before executing the one-line command (where `sudo` is in front of the command does not work)._
 
-‚ö†Ô∏è Warning: There is currently an issue where Pelican creates files owned by the wrong Linux user when specific features on the admin panel are enabled. To resolve this, you may have to adjust the permissions by running the following command: `chown -R www-data:www-data /var/www/pelican`. For more details, check Pelican's [troubleshooting guide](https://pelican.dev/docs/troubleshooting/).
+?†Ô? Warning: There is currently an issue where Pelican creates files owned by the wrong Linux user when specific features on the admin panel are enabled. To resolve this, you may have to adjust the permissions by running the following command: `chown -R www-data:www-data /var/www/pelican`. For more details, check Pelican's [troubleshooting guide](https://pelican.dev/docs/troubleshooting/).
 
 Here is a [YouTube Video](https://www.youtube.com/watch?v=E8UJhyUFoHM) that illustrates the installation process.
 
@@ -36,7 +36,7 @@ Here is a [YouTube Video](https://www.youtube.com/watch?v=E8UJhyUFoHM) that illu
 
 ## Help and support
 
-For help and support regarding the script itself and **not the official Pelican project**, create a [Github Issue](https://github.com/pelican-installer/pelican-installer/issues).
+For help and support regarding the script itself and **not the official Pelican project**, create a [Github Issue](https://github.com/Zinidia/Pelinstaller/issues).
 
 ## Supported installations
 
@@ -74,10 +74,10 @@ The installation scripts can install and configure a firewall for you. The scrip
 
 ### Creating a release
 
-In `install.sh` github source and script release variables should change every release. Firstly, update the `CHANGELOG.md` so that the release date and release tag are both displayed. No changes should be made to the changelog points themselves. Secondly, update `GITHUB_SOURCE` and `SCRIPT_RELEASE` in `install.sh`. Finally, you can now push a commit with the message `Release vX.Y.Z`. Create a release on GitHub. See [this commit](https://github.com/pelican-installer/pelican-installer/commit/90aaae10785f1032fdf90b216a4a8d8ca64e6d44) for reference.
+In `install.sh` github source and script release variables should change every release. Firstly, update the `CHANGELOG.md` so that the release date and release tag are both displayed. No changes should be made to the changelog points themselves. Secondly, update `GITHUB_SOURCE` and `SCRIPT_RELEASE` in `install.sh`. Finally, you can now push a commit with the message `Release vX.Y.Z`. Create a release on GitHub. See [this commit](https://github.com/Zinidia/Pelinstaller/commit/90aaae10785f1032fdf90b216a4a8d8ca64e6d44) for reference.
 
 
-## Sponsors ‚ú®
+## Sponsors ??
 
 I would like to extend my sincere thanks to the following sponsors for helping fund Pelinstaller's development.
 [Interested in becoming a sponsor?](mailto:me@matthew.expert)
@@ -86,7 +86,7 @@ I would like to extend my sincere thanks to the following sponsors for helping f
 |-----------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [**ForestRacks**](https://forestracks.com/vps)  | Looking for a place to host your Pelican Panel? Try out a ForestRacks VPS, ForestRacks is a US-based 5-Star hosting provider offering services globally since 2019. |
 
-## Contributors ‚ú®
+## Contributors ??
 
 We would like to thank the following contributors for their work in maintaining and creating this installer:
 1) [Matthew Jacob](https://github.com/Zinidia)

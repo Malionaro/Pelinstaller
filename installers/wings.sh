@@ -4,7 +4,7 @@ set -e
 
 ######################################################################################
 #                                                                                    #
-# Project 'pelican-installer'                                                        #
+# Project 'Pelinstaller'                                                        #
 #                                                                                    #
 # Copyright (C) 2018 - 2024, Vilhelm Prytz, <vilhelm@prytznet.se>                    #
 # Copyright (C) 2021 - 2024, Matthew Jacob, <me@matthew.expert>                      #
@@ -22,10 +22,10 @@ set -e
 #   You should have received a copy of the GNU General Public License                #
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.           #
 #                                                                                    #
-# https://github.com/pelican-installer/pelican-installer/blob/Production/LICENSE.md  #
+# https://github.com/Zinidia/Pelinstaller/blob/Production/LICENSE.md  #
 #                                                                                    #
 # This script is not associated with the official Pelican Project.                   #
-# https://github.com/pelican-installer/pelican-installer                             #
+# https://github.com/Zinidia/Pelinstaller                             #
 #                                                                                    #
 ######################################################################################
 
@@ -115,7 +115,7 @@ dep_install() {
 ptdl_dl() {
   echo "* Downloading Pelican Wings.. "
 
-  mkdir -p /etc/pelican
+  mkdir -p /etc/pelican /var/run/wings
   curl -L -o /usr/local/bin/wings "$WINGS_DL_BASE_URL$ARCH"
 
   chmod u+x /usr/local/bin/wings
