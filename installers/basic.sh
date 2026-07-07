@@ -384,13 +384,17 @@ php_fpm_conf() {
 
 ubuntu_dep() {
   # Install deps for adding repos
-  install_packages "software-properties-common apt-transport-https ca-certificates gnupg jq"
+  install_packages "software-properties-common apt-transport-https ca-certificates gnupg"
 
   # Add Ubuntu universe repo
   add-apt-repository universe -y
 
-  # Add PPA for PHP (we need 8.5)
-  LC_ALL=C.UTF-8 add-apt-repository -y ppa:ondrej/php
+  # Add PHP PPA
+  if curl -fsSL "https://ppa.launchpadcontent.net/ondrej/php/ubuntu/dists/${UBUNTU_CODENAME}/Release" >/dev/null; then
+    LC_ALL=C.UTF-8 add-apt-repository -y ppa:ondrej/php
+  else
+    warning "Ondrej PHP PPA does not support ${UBUNTU_CODENAME}; using Ubuntu packages."
+  fi
 }
 
 debian_dep() {
