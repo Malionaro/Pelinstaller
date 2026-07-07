@@ -533,12 +533,14 @@ ubuntu)
   [ "$OS_VER_MAJOR" == "20" ] && SUPPORTED=true
   [ "$OS_VER_MAJOR" == "22" ] && SUPPORTED=true
   [ "$OS_VER_MAJOR" == "24" ] && SUPPORTED=true
+  [ "$OS_VER_MAJOR" == "26" ] && SUPPORTED=true
   export DEBIAN_FRONTEND=noninteractive
   ;;
 debian)
   [ "$OS_VER_MAJOR" == "10" ] && SUPPORTED=true
   [ "$OS_VER_MAJOR" == "11" ] && SUPPORTED=true
   [ "$OS_VER_MAJOR" == "12" ] && SUPPORTED=true
+  [ "$OS_VER_MAJOR" == "13" ] && SUPPORTED=true
   export DEBIAN_FRONTEND=noninteractive
   ;;
 rocky | almalinux)
