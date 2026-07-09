@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -eo pipefail
 
 ######################################################################################
 #                                                                                    #
@@ -100,7 +100,31 @@ execute() {
   fi
 }
 
+execute_arg() {
+  case "$1" in
+  auto | basic)
+    execute "basic"
+    ;;
+  panel | wings | uninstall)
+    execute "$1"
+    ;;
+  both)
+    execute "panel" "wings"
+    ;;
+  *)
+    error "Invalid option '$1'. Expected one of: auto, panel, wings, both, uninstall."
+    exit 1
+    ;;
+  esac
+}
+
 welcome ""
+
+if [[ -n "${1:-}" ]]; then
+  execute_arg "$1"
+  rm -rf /tmp/lib.sh
+  exit 0
+fi
 
 done=false
 while [ "$done" == false ]; do
@@ -132,9 +156,15 @@ while [ "$done" == false ]; do
 
   [ -z "$action" ] && error "Input is required" && continue
 
-  valid_input=("$(for ((i = 0; i <= ${#actions[@]} - 1; i += 1)); do echo "${i}"; done)")
-  [[ ! " ${valid_input[*]} " =~ ${action} ]] && error "Invalid option"
-  [[ " ${valid_input[*]} " =~ ${action} ]] && done=true && IFS=";" read -r i1 i2 <<<"${actions[$action]}" && execute "$i1" "$i2"
+  if [[ ! "$action" =~ ^[0-9]+$ ]] || ((10#$action >= ${#actions[@]})); then
+    error "Invalid option"
+    continue
+  fi
+
+  action=$((10#$action))
+  done=true
+  IFS=";" read -r i1 i2 <<<"${actions[$action]}"
+  execute "$i1" "$i2"
 done
 
 # Remove lib.sh, so next time the script is run the, newest version is downloaded.

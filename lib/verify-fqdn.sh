@@ -95,9 +95,9 @@ dns_verify() {
 
 main() {
   fqdn="$1"
+  confirm || exit 1
   dep_install
-  confirm && dns_verify
-  true
+  dns_verify
 }
 
 main "$1" "$2"
