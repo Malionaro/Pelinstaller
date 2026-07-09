@@ -410,7 +410,14 @@ configure_nginx() {
     ;;
   esac
 
-  if [ "$ASSUME_SSL" == false ] && [ "$CONFIGURE_LETSENCRYPT" == false ]; then
+  if [ "$ASSUME_SSL" == true ] && [ "$CONFIGURE_LETSENCRYPT" == false ]; then
+    if nginx -t; then
+      systemctl restart nginx
+    else
+      warning "Nginx configuration was written but not reloaded. Install the SSL certificate files and restart nginx."
+    fi
+  else
+    nginx -t
     systemctl restart nginx
   fi
 

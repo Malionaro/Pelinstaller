@@ -60,7 +60,7 @@ export MYSQL_DBHOST_PASSWORD=""
 # ------------ User input functions ------------ #
 
 ask_letsencrypt() {
-  if [ "$CONFIGURE_UFW" == false ] && [ "$CONFIGURE_FIREWALL_CMD" == false ]; then
+  if [ "$CONFIGURE_FIREWALL" == false ]; then
     warning "Let's Encrypt requires port 80/443 to be opened! You have opted out of the automatic firewall configuration; use this at your own risk (if port 80/443 is closed, the script will fail)!"
   fi
 
@@ -164,7 +164,7 @@ main() {
   ask_letsencrypt
 
   if [ "$CONFIGURE_LETSENCRYPT" == true ]; then
-    while [ -z "$FQDN" ]; do
+    while [ "$CONFIGURE_LETSENCRYPT" == true ] && [ -z "$FQDN" ]; do
       echo -n "* Set the FQDN to use for Let's Encrypt (node.example.com): "
       read -r FQDN
 

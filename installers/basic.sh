@@ -15,17 +15,10 @@ fi
 # Path (export everything that is possible, doesn't matter that it exists already)
 export PATH="$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
 
-# Operating System
-export OS=""
-export OS_VER_MAJOR=""
-export CPU_ARCHITECTURE=""
-export ARCH=""
-export SUPPORTED=false
-
 # Download URLs
-export PANEL_DL_URL="https://github.com/pelican-dev/panel/releases/latest/download/panel.tar.gz"
-export WINGS_DL_URL="https://github.com/pelican-dev/wings/releases/latest/download/wings_linux_"
-export GIT_REPO_URL="https://raw.githubusercontent.com/Zinidia/Pelinstaller/Production"
+export PANEL_DL_URL="${PANEL_DL_URL:-https://github.com/pelican-dev/panel/releases/latest/download/panel.tar.gz}"
+export WINGS_DL_URL="${WINGS_DL_URL:-${WINGS_DL_BASE_URL:-https://github.com/pelican-dev/wings/releases/latest/download/wings_linux_}}"
+export GIT_REPO_URL="${GIT_REPO_URL:-${GITHUB_URL:-https://raw.githubusercontent.com/Zinidia/Pelinstaller/Production}}"
 
 # Colors
 COLOR_YELLOW='\033[1;33m'

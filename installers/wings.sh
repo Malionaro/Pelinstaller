@@ -116,7 +116,7 @@ ptdl_dl() {
   echo "* Downloading Pelican Wings.. "
 
   mkdir -p /etc/pelican /var/run/wings
-  curl -L -o /usr/local/bin/wings "$WINGS_DL_BASE_URL$ARCH"
+  curl -fsSL -o /usr/local/bin/wings "$WINGS_DL_BASE_URL$ARCH"
 
   chmod u+x /usr/local/bin/wings
 
@@ -126,7 +126,7 @@ ptdl_dl() {
 systemd_file() {
   output "Installing systemd service.."
 
-  curl -o /etc/systemd/system/wings.service "$GITHUB_URL"/configs/wings.service
+  curl -fsSL -o /etc/systemd/system/wings.service "$GITHUB_URL"/configs/wings.service
   systemctl daemon-reload
   systemctl enable wings
 
@@ -179,11 +179,11 @@ configure_mysql() {
       sed -i 's/127.0.0.1/0.0.0.0/g' /etc/mysql/mariadb.conf.d/50-server.cnf
       ;;
     rocky | almalinux)
-      sed -ne 's/^#bind-address=0.0.0.0$/bind-address=0.0.0.0/' /etc/my.cnf.d/mariadb-server.cnf
+      sed -i 's/^#bind-address=0.0.0.0$/bind-address=0.0.0.0/' /etc/my.cnf.d/mariadb-server.cnf
       ;;
     esac
 
-    systemctl restart mysqld
+    systemctl restart mariadb
   fi
 
   success "MySQL configured!"

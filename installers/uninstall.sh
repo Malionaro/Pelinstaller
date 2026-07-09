@@ -47,10 +47,16 @@ RM_WINGS="${RM_WINGS:-true}"
 rm_panel_files() {
   output "Removing panel files..."
   rm -rf /var/www/pelican /usr/local/bin/composer
-  [ "$OS" != "centos" ] && unlink /etc/nginx/sites-enabled/pelican.conf
-  [ "$OS" != "centos" ] && rm -f /etc/nginx/sites-available/pelican.conf
-  [ "$OS" != "centos" ] && ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
-  [ "$OS" == "centos" ] && rm -f /etc/nginx/conf.d/pelican.conf
+  case "$OS" in
+  ubuntu | debian)
+    rm -f /etc/nginx/sites-enabled/pelican.conf
+    rm -f /etc/nginx/sites-available/pelican.conf
+    [ -e /etc/nginx/sites-available/default ] && ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+    ;;
+  rocky | almalinux)
+    rm -f /etc/nginx/conf.d/pelican.conf
+    ;;
+  esac
   systemctl restart nginx
   success "Removed panel files."
 }
@@ -78,13 +84,13 @@ rm_services() {
   output "Removing services..."
   systemctl disable --now pelican-queue
   rm -rf /etc/systemd/system/pelican-queue.service
-  systemctl disable --now pteroq
+  systemctl disable --now pteroq || true
   rm -rf /etc/systemd/system/pteroq.service
   case "$OS" in
   ubuntu | debian)
     systemctl disable --now redis-server
     ;;
-  centos)
+  rocky | almalinux)
     systemctl disable --now redis
     systemctl disable --now php-fpm
     rm -rf /etc/php-fpm.d/www-pelican.conf
