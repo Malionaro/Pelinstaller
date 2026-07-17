@@ -105,9 +105,10 @@ compose_up() {
 # ------------------ Migrate + admin user ------------------ #
 configure_panel() {
   output "Waiting for the panel and database to finish configuring .."
-  local ready=false
+  local ready=false status
   for _ in $(seq 1 60); do
-    if $DC exec -T panel php artisan migrate:status >/dev/null 2>&1; then
+    status="$($DC exec -T panel php artisan migrate:status 2>/dev/null)"
+    if [ -n "$status" ] && ! echo "$status" | grep -qi pending; then
       ready=true
       break
     fi
