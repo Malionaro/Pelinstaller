@@ -2,17 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/github/license/Zinidia/Pelinstaller)](LICENSE.md)
 
-<table><tr></tr><tr><td>
-
-### ⚠️ Pelican is in beta so this script may not work if breaking changes are made, this script will also be recoded to use Docker Compose in the coming days :construction:
-
-Welcome to the Pelinstaller repository! This installer is a hard fork of [ForestRacks's Pterodactyl Installer](https://github.com/ForestRacks/PteroInstaller) and is specifically designed for people to easily install and set up the Pelican on Debian-based or RHEL-based machines. If you encounter any issues during the installation process, post an issue on our GitHub repository for assistance.
-
-Learn more about [Pelican's Project](https://pelican.dev/) here. This script is a third-party utility and not associated with the official Pelican Project.
-
-<br></td></tr></table>
-
-## Using the installation scripts
+## Installation
 
 To use the installation scripts, simply run this command as root. The script will ask you whether you would like to install just the panel, just Wings or both.
 
@@ -101,4 +91,4 @@ We would like to thank the following contributors for their work in maintaining 
 8) [sinjs](https://github.com/sinjs)
 
 Copyright (C) 2018 - 2024, Vilhelm Prytz
-Copyright (C) 2021 - 2024, Matthew Jacob
+Copyright (C) 2021 - 2026, Matthew Jacob

@@ -4,10 +4,10 @@ set -eo pipefail
 
 ######################################################################################
 #                                                                                    #
-# Project 'Pelinstaller'                                                        #
+# Project 'Pelinstaller'                                                             #
 #                                                                                    #
 # Copyright (C) 2018 - 2024, Vilhelm Prytz, <vilhelm@prytznet.se>                    #
-# Copyright (C) 2021 - 2024, Matthew Jacob, <git@matthew.network>                      #
+# Copyright (C) 2021 - 2026, Matthew Jacob, <git@matthew.network>                    #
 #                                                                                    #
 #   This program is free software: you can redistribute it and/or modify             #
 #   it under the terms of the GNU General Public License as published by             #
@@ -22,18 +22,12 @@ set -eo pipefail
 #   You should have received a copy of the GNU General Public License                #
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.           #
 #                                                                                    #
-# https://github.com/Zinidia/Pelinstaller/blob/Production/LICENSE.md  #
+# https://github.com/Zinidia/Pelinstaller/blob/Production/LICENSE.md                 #
 #                                                                                    #
 # This script is not associated with the official Pelican Project.                   #
-# https://github.com/Zinidia/Pelinstaller                             #
+# https://github.com/Zinidia/Pelinstaller                                            #
 #                                                                                    #
 ######################################################################################
-
-export GITHUB_SOURCE="Production"
-export SCRIPT_RELEASE="canary"
-export GITHUB_BASE_URL="https://raw.githubusercontent.com/Zinidia/Pelinstaller"
-
-LOG_PATH="/var/log/pelinstaller.log"
 
 output() {
   echo "* ${1}"
@@ -47,6 +41,27 @@ error() {
   echo -e "* ${COLOR_RED}ERROR${COLOR_NC}: $1"
   echo ""
 }
+
+# Parse args
+REPO="${REPO:-Zinidia/Pelinstaller}"
+BRANCH="${BRANCH:-Production}"
+MODE=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --repo) REPO="$2"; shift 2 ;;
+    --repo=*) REPO="${1#*=}"; shift ;;
+    --branch|--source) BRANCH="$2"; shift 2 ;;
+    --branch=*|--source=*) BRANCH="${1#*=}"; shift ;;
+    basic|docker|panel|wings|both|uninstall)
+      MODE="$1"; shift ;;
+    *) error "Unknown argument: '$1'. Expected a mode (basic, docker, panel, wings, both, uninstall) arg --repo or --branch."; exit 1 ;;
+  esac
+done
+
+export REPO BRANCH
+export GIT_REPO_URL="https://raw.githubusercontent.com/$REPO/$BRANCH"
+LOG_PATH="/var/log/pelinstaller.log"
 
 # Exit with error status code if user is not root
 if [[ $EUID -ne 0 ]]; then
@@ -75,97 +90,135 @@ if ! [ -x "$(command -v curl)" ]; then
   fi
 fi
 
-# Always remove lib.sh, before downloading it
-rm -rf /tmp/lib.sh
-curl -sSL -o /tmp/lib.sh "$GITHUB_BASE_URL/$GITHUB_SOURCE"/lib/lib.sh
+# Lib Functions
+LIB_PATH="/tmp/lib.sh"
+curl -fsSL -o "$LIB_PATH" "$GIT_REPO_URL"/lib/lib.sh
+trap 'rm -f "$LIB_PATH"' EXIT
 # shellcheck source=lib/lib.sh
-source /tmp/lib.sh
+source "$LIB_PATH"
 
-execute() {
-  echo -e "\n\n* Pelinstaller $(date) \n\n" >>$LOG_PATH
-
-  [[ "$1" == *"canary"* ]] && export GITHUB_SOURCE="Production" && export SCRIPT_RELEASE="canary"
-  update_lib_source
-  run_ui "${1//_canary/}" |& tee -a $LOG_PATH
-
-  if [[ -n $2 ]]; then
-    echo -e -n "* Installation of $1 completed. Do you want to proceed to $2 installation? (y/N): "
-    read -r CONFIRM
-    if [[ "$CONFIRM" =~ [Yy] ]]; then
-      execute "$2"
-    else
-      error "Installation of $2 aborted."
-      exit 1
-    fi
-  fi
+run_mode() {
+  local mode="$1"
+  local script
+  script="$(mktemp)"
+  curl -fsSL -o "$script" "$GIT_REPO_URL/installers/$mode.sh"
+  echo -e "\n\n* Pelinstaller $(date) \n\n" >>"$LOG_PATH"
+  bash "$script" 2>&1 | tee -a "$LOG_PATH"
+  rm -f "$script"
 }
 
 execute_arg() {
   case "$1" in
-  auto | basic)
-    execute "basic"
-    ;;
-  panel | wings | uninstall)
-    execute "$1"
-    ;;
-  both)
-    execute "panel" "wings"
-    ;;
-  *)
-    error "Invalid option '$1'. Expected one of: auto, panel, wings, both, uninstall."
-    exit 1
-    ;;
+    basic)     run_mode "basic" ;;
+    docker)    run_mode "docker" ;;
+    panel)     run_mode "panel" ;;
+    wings)     run_mode "wings" ;;
+    both)      run_mode "panel"; run_mode "wings" ;;
+    uninstall) run_mode "uninstall" ;;
+    *) error "Invalid option '$1'. Expected one of: basic, docker, panel, wings, both, uninstall."; exit 1 ;;
   esac
 }
 
 welcome ""
 
-if [[ -n "${1:-}" ]]; then
-  execute_arg "$1"
-  rm -rf /tmp/lib.sh
+# ----------------- Non-interactive CLI args ----------------- #
+if [[ -n "$MODE" ]]; then
+  execute_arg "$MODE"
   exit 0
 fi
 
-done=false
-while [ "$done" == false ]; do
-  options=(
-    "Install the Panel - Standard installation of the Pelican Panel"
-    "Install Wings - Standard installation of the Pelican Wings"
-    "Install Both Standard [0] and [1] on the same machine (wings script runs after panel)"
-    "Both Test Environment - Full automation and zero prompts, HTTP-only"
+# Check for existing installation
+if [ -d "/var/www/pelican" ]; then
+  existing_choice=""
+  while [ -z "$existing_choice" ]; do
+    error "The script has detected that you already have Pelican panel on your system!"
+    output "[1] Uninstall Pelican - Attempt automated Pelican uninstallation."
+    output "[2] Continue Anyway - Ignore warnings and attempt to install Pelican anyway."
+    output "[3] Exit Installer - Cancel installation process."
 
-    "Attempt to uninstall panel or wings with (the versions that lives in Production, may be broken!)"
-  )
-
-  actions=(
-    "panel"
-    "wings"
-    "panel;wings"
-    "basic"
-    "uninstall"
-  )
-
-  output "What would you like to do?"
-
-  for i in "${!options[@]}"; do
-    output "[$i] ${options[$i]}"
+    echo -n "* Input 1-3: "
+    read -r action || true
+    case "$action" in
+      1)
+        existing_choice="uninstall"
+        echo "Attempting uninstall .."
+        run_mode "uninstall"
+        echo -e -n "* Pelican successfully uninstalled, attempt an install now? (y/N): "
+        read -r CONFIRM_PROCEED || true
+        if [[ ! "$CONFIRM_PROCEED" =~ [Yy] ]]; then
+          error "Installation aborted!"
+          exit 1
+        fi
+        ;;
+      2)
+        existing_choice="continue"
+        echo "Attempting to proceed anyway .."
+        ;;
+      3)
+        echo "Exiting installer .."
+        exit 1
+        ;;
+      *)
+        error "Invalid option. Please input a number between 1 and 3."
+        ;;
+    esac
   done
+fi
 
-  echo -n "* Input 0-$((${#actions[@]} - 1)): "
-  read -r action
+# ----------------- Stage 1: Panel install mode ----------------- #
+panel_mode=""
+while [ -z "$panel_mode" ]; do
+  output "What Panel installation mode would you like to use?"
+  output "[0] Skip - Do not install the panel (default)"
+  output "[1] Basic - Zero prompts, development environment (panel + wings, HTTP-only)"
+  output "[2] Docker (Recommended) - docker compose using the official ghcr images"
+  output "[3] Bare metal - Standard install without Docker (prompts for FQDN/SSL)"
 
-  [ -z "$action" ] && error "Input is required" && continue
+  echo -n "* Input 0-3 [0]: "
+  read -r action || true
+  [ -z "$action" ] && action=0
 
-  if [[ ! "$action" =~ ^[0-9]+$ ]] || ((10#$action >= ${#actions[@]})); then
-    error "Invalid option"
-    continue
-  fi
-
-  action=$((10#$action))
-  done=true
-  IFS=";" read -r i1 i2 <<<"${actions[$action]}"
-  execute "$i1" "$i2"
+  case "$action" in
+    0) panel_mode="skip" ;;
+    1) panel_mode="basic" ;;
+    2) panel_mode="docker" ;;
+    3) panel_mode="panel" ;;
+    *) error "Invalid option" ;;
+  esac
 done
 
-# Remove lib.sh, so next time the script is run the, newest version is downloaded.
-rm -rf /tmp/lib.sh
+# ----------------- Stage 2: Wings install ----------------- #
+wings_mode="skip"
+# Basic mode automatically installs wings
+if [ "$panel_mode" != "basic" ]; then
+  chosen=""
+  while [ -z "$chosen" ]; do
+    output "Do you want to install Wings (the machine daemon)?"
+    output "[0] Skip - Do not install wings (default)"
+    output "[1] Install Wings"
+
+    echo -n "* Input 0-1 [0]: "
+    read -r action || true
+    [ -z "$action" ] && action=0
+
+    case "$action" in
+      0) chosen="skip" ;;
+      1) chosen="wings"; wings_mode="wings" ;;
+      *) error "Invalid option" ;;
+    esac
+  done
+fi
+
+# ----------------- Execute selections ----------------- #
+case "$panel_mode" in
+  basic)  run_mode "basic" ;;
+  docker) run_mode "docker" ;;
+  panel)  run_mode "panel" ;;
+  skip)   output "Skipping panel installation." ;;
+esac
+
+[ "$wings_mode" == "wings" ] && run_mode "wings"
+
+if [ "$panel_mode" == "skip" ] && [ "$wings_mode" == "skip" ]; then
+  output "Nothing selected. Exiting."
+fi

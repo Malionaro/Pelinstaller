@@ -4,10 +4,10 @@ set -e
 
 ######################################################################################
 #                                                                                    #
-# Project 'Pelinstaller'                                                        #
+# Project 'Pelinstaller'                                                             #
 #                                                                                    #
 # Copyright (C) 2018 - 2024, Vilhelm Prytz, <vilhelm@prytznet.se>                    #
-# Copyright (C) 2021 - 2024, Matthew Jacob, <git@matthew.network>                      #
+# Copyright (C) 2021 - 2026, Matthew Jacob, <git@matthew.network>                    #
 #                                                                                    #
 #   This program is free software: you can redistribute it and/or modify             #
 #   it under the terms of the GNU General Public License as published by             #
@@ -22,10 +22,10 @@ set -e
 #   You should have received a copy of the GNU General Public License                #
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.           #
 #                                                                                    #
-# https://github.com/Zinidia/Pelinstaller/blob/Production/LICENSE.md  #
+# https://github.com/Zinidia/Pelinstaller/blob/Production/LICENSE.md                 #
 #                                                                                    #
 # This script is not associated with the official Pelican Project.                   #
-# https://github.com/Zinidia/Pelinstaller                             #
+# https://github.com/Zinidia/Pelinstaller                                            #
 #                                                                                    #
 ######################################################################################
 
@@ -33,73 +33,76 @@ set -e
 fn_exists() { declare -F "$1" >/dev/null; }
 if ! fn_exists lib_loaded; then
   # shellcheck source=lib/lib.sh
-  source /tmp/lib.sh || source <(curl -sSL "$GITHUB_BASE_URL/$GITHUB_SOURCE"/lib/lib.sh)
+  source /tmp/lib.sh || source <(curl -fsSL "$GIT_REPO_URL"/lib/lib.sh)
   ! fn_exists lib_loaded && echo "* ERROR: Could not load lib script" && exit 1
 fi
 
 # ------------------ Variables ----------------- #
-
 # Domain name / IP
-FQDN="${FQDN:-localhost}"
+export HOSTNAME=""
 
 # Default MySQL credentials
-MYSQL_DB="${MYSQL_DB:-panel}"
-MYSQL_USER="${MYSQL_USER:-pelican}"
-MYSQL_PASSWORD="${MYSQL_PASSWORD:-$(gen_passwd 64)}"
+export MYSQL_DB=""
+export MYSQL_USER=""
+export MYSQL_PASSWORD=""
 
 # Environment
-timezone="${timezone:-America/Chicago}"
+export timezone=""
+export email=""
+
+# Initial admin account
+export user_email=""
+export user_username=""
+export user_firstname=""
+export user_lastname=""
+export user_password=""
 
 # Assume SSL, will fetch different config if true
-ASSUME_SSL="${ASSUME_SSL:-false}"
-CONFIGURE_LETSENCRYPT="${CONFIGURE_LETSENCRYPT:-false}"
+export ASSUME_SSL=false
+export CONFIGURE_LETSENCRYPT=false
 
 # Firewall
-CONFIGURE_FIREWALL="${CONFIGURE_FIREWALL:-false}"
+export CONFIGURE_FIREWALL=false
 
-# Must be assigned to work, no default values
-email="${email:-}"
-user_email="${user_email:-}"
-user_username="${user_username:-}"
-user_firstname="${user_firstname:-}"
-user_lastname="${user_lastname:-}"
-user_password="${user_password:-}"
+# ------------ User input functions ------------ #
+ask_letsencrypt() {
+  if [ "$CONFIGURE_FIREWALL" == false ]; then
+    warning "Let's Encrypt requires port 80/443 to be opened! You have opted out of the automatic firewall configuration; use this at your own risk (if port 80/443 is closed, the script will fail)!"
+  fi
 
-if [[ -z "${email}" ]]; then
-  error "Email is required"
-  exit 1
-fi
+  echo -e -n "* Do you want to automatically configure HTTPS using Let's Encrypt? (y/N): "
+  read -r CONFIRM_SSL
 
-if [[ -z "${user_email}" ]]; then
-  error "User email is required"
-  exit 1
-fi
+  if [[ "$CONFIRM_SSL" =~ [Yy] ]]; then
+    CONFIGURE_LETSENCRYPT=true
+    ASSUME_SSL=false
+  fi
+}
 
-if [[ -z "${user_username}" ]]; then
-  error "User username is required"
-  exit 1
-fi
+ask_assume_ssl() {
+  output "Let's Encrypt is not going to be automatically configured by this script (user opted out)."
+  output "You can 'assume' Let's Encrypt, which means the script will download a nginx configuration that is configured to use a Let's Encrypt certificate but the script won't obtain the certificate for you."
+  output "If you assume SSL and do not obtain the certificate, your installation will not work."
+  echo -n "* Assume SSL or not? (y/N): "
+  read -r ASSUME_SSL_INPUT
 
-if [[ -z "${user_firstname}" ]]; then
-  error "User firstname is required"
-  exit 1
-fi
+  [[ "$ASSUME_SSL_INPUT" =~ [Yy] ]] && ASSUME_SSL=true
+  true
+}
 
-if [[ -z "${user_lastname}" ]]; then
-  error "User lastname is required"
-  exit 1
-fi
-
-if [[ -z "${user_password}" ]]; then
-  error "User password is required"
-  exit 1
-fi
+check_FQDN_SSL() {
+  if [[ $(invalid_ip "$HOSTNAME") == 1 && $HOSTNAME != 'localhost' ]]; then
+    SSL_AVAILABLE=true
+  else
+    warning "* Let's Encrypt will not be available for IP addresses."
+    output "To use Let's Encrypt, you must use a valid domain name."
+  fi
+}
 
 # --------- Main installation functions -------- #
-
 install_composer() {
-  output "Installing composer.."
-  curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+  output "Installing composer .."
+  curl -fsS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
   success "Composer installed!"
 }
 
@@ -118,7 +121,7 @@ ptdl_dl() {
 }
 
 install_composer_deps() {
-  output "Installing composer dependencies.."
+  output "Installing composer dependencies .."
   [ "$OS" == "rocky" ] || [ "$OS" == "almalinux" ] && export PATH=/usr/local/bin:$PATH
   COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
   success "Installed composer dependencies!"
@@ -126,11 +129,11 @@ install_composer_deps() {
 
 # Configure environment
 configure() {
-  output "Configuring environment.."
+  output "Configuring environment .."
 
-  local app_url="http://$FQDN"
-  [ "$ASSUME_SSL" == true ] && app_url="https://$FQDN"
-  [ "$CONFIGURE_LETSENCRYPT" == true ] && app_url="https://$FQDN"
+  local app_url="http://$HOSTNAME"
+  [ "$ASSUME_SSL" == true ] && app_url="https://$HOSTNAME"
+  [ "$CONFIGURE_LETSENCRYPT" == true ] && app_url="https://$HOSTNAME"
 
   # Generate encryption key
   php artisan key:generate --force
@@ -149,7 +152,7 @@ configure() {
     --username="$MYSQL_USER" \
     --password="$MYSQL_PASSWORD"
 
-  # configures database
+  # Configure database
   php artisan migrate --seed --force
 
   # Create user account
@@ -164,12 +167,12 @@ configure() {
 
 # Set proper directory permissions for distro
 set_folder_permissions() {
-  # if os is ubuntu or debian, set permissions
+  # Assign directory user
   case "$OS" in
-  ubuntu | debian)
+  debian | ubuntu)
     chown -R www-data:www-data ./
     ;;
-  rocky | almalinux)
+  almalinux | rocky)
     chown -R nginx:nginx ./
     ;;
   esac
@@ -180,10 +183,10 @@ insert_cronjob() {
 
   local web_user
   case "$OS" in
-  ubuntu | debian)
+  debian | ubuntu)
     web_user="www-data"
     ;;
-  rocky | almalinux)
+  almalinux | rocky)
     web_user="nginx"
     ;;
   esac
@@ -197,14 +200,14 @@ insert_cronjob() {
 }
 
 install_pelican_queue() {
-  output "Installing pelican-queue service.."
+  output "Installing pelican-queue service .."
 
   local web_user
   case "$OS" in
-  ubuntu | debian)
+  debian | ubuntu)
     web_user="www-data"
     ;;
-  rocky | almalinux)
+  almalinux | rocky)
     web_user="nginx"
     ;;
   esac
@@ -219,14 +222,13 @@ install_pelican_queue() {
 }
 
 # -------- OS specific install functions ------- #
-
 enable_services() {
   case "$OS" in
-  ubuntu | debian)
+  debian | ubuntu)
     systemctl enable redis-server
     systemctl start redis-server
     ;;
-  rocky | almalinux)
+  almalinux | rocky)
     systemctl enable redis
     systemctl start redis
     ;;
@@ -243,7 +245,7 @@ selinux_allow() {
 }
 
 php_fpm_conf() {
-  curl -o /etc/php-fpm.d/www-pelican.conf "$GITHUB_URL"/configs/www-pelican.conf
+  curl -o /etc/php-fpm.d/www-pelican.conf "$GIT_REPO_URL"/configs/www-pelican.conf
 
   systemctl enable php-fpm
   systemctl start php-fpm
@@ -278,13 +280,13 @@ alma_rocky_dep() {
   install_packages "policycoreutils selinux-policy selinux-policy-targeted \
     setroubleshoot-server setools setools-console mcstrans"
 
-  # add remi repo (php8.5)
+  # Add remi repo
   install_packages "epel-release http://rpms.remirepo.net/enterprise/remi-release-$OS_VER_MAJOR.rpm"
   dnf module enable -y php:remi-8.5
 }
 
 dep_install() {
-  output "Installing dependencies for $OS $OS_VER..."
+  output "Installing dependencies for $OS $OS_VER .."
 
   # Update repos before installing
   update_repos
@@ -292,7 +294,7 @@ dep_install() {
   [ "$CONFIGURE_FIREWALL" == true ] && install_firewall && firewall_ports
 
   case "$OS" in
-  ubuntu | debian)
+  debian | ubuntu)
     [ "$OS" == "ubuntu" ] && ubuntu_dep
     [ "$OS" == "debian" ] && debian_dep
 
@@ -309,7 +311,7 @@ dep_install() {
     [ "$CONFIGURE_LETSENCRYPT" == true ] && install_packages "certbot python3-certbot-nginx"
 
     ;;
-  rocky | almalinux)
+  almalinux | rocky)
     alma_rocky_dep
 
     # Install dependencies
@@ -325,7 +327,7 @@ dep_install() {
     # Allow nginx
     selinux_allow
 
-    # Create config for php fpm
+    # Create config for PHP FPM
     php_fpm_conf
     ;;
   esac
@@ -336,7 +338,6 @@ dep_install() {
 }
 
 # --------------- Other functions -------------- #
-
 firewall_ports() {
   output "Opening ports: 22 (SSH), 80 (HTTP) and 443 (HTTPS)"
 
@@ -348,13 +349,13 @@ firewall_ports() {
 letsencrypt() {
   FAILED=false
 
-  output "Configuring Let's Encrypt..."
+  output "Configuring Let's Encrypt .."
 
   # Obtain certificate
-  certbot --nginx --redirect --no-eff-email --email "$email" -d "$FQDN" || FAILED=true
+  certbot --nginx --redirect --no-eff-email --email "$email" -d "$HOSTNAME" || FAILED=true
 
   # Check if it succeded
-  if [ ! -d "/etc/letsencrypt/live/$FQDN/" ] || [ "$FAILED" == true ]; then
+  if [ ! -d "/etc/letsencrypt/live/$HOSTNAME/" ] || [ "$FAILED" == true ]; then
     warning "The process of obtaining a Let's Encrypt certificate failed!"
     echo -n "* Still assume SSL? (y/N): "
     read -r CONFIGURE_SSL
@@ -373,7 +374,6 @@ letsencrypt() {
 }
 
 # ------ Webserver configuration functions ----- #
-
 configure_nginx() {
   output "Configuring nginx .."
 
@@ -384,12 +384,12 @@ configure_nginx() {
   fi
 
   case "$OS" in
-  ubuntu | debian)
+  debian | ubuntu)
     PHP_SOCKET="/run/php/php8.5-fpm.sock"
     CONFIG_PATH_AVAIL="/etc/nginx/sites-available"
     CONFIG_PATH_ENABL="/etc/nginx/sites-enabled"
     ;;
-  rocky | almalinux)
+  almalinux | rocky)
     PHP_SOCKET="/var/run/php-fpm/pelican.sock"
     CONFIG_PATH_AVAIL="/etc/nginx/conf.d"
     CONFIG_PATH_ENABL="$CONFIG_PATH_AVAIL"
@@ -398,14 +398,14 @@ configure_nginx() {
 
   rm -rf "$CONFIG_PATH_ENABL"/default
 
-  curl -o "$CONFIG_PATH_AVAIL"/pelican.conf "$GITHUB_URL"/configs/$DL_FILE
+  curl -o "$CONFIG_PATH_AVAIL"/pelican.conf "$GIT_REPO_URL"/configs/$DL_FILE
 
-  sed -i -e "s@<domain>@${FQDN}@g" "$CONFIG_PATH_AVAIL"/pelican.conf
+  sed -i -e "s@<domain>@${HOSTNAME}@g" "$CONFIG_PATH_AVAIL"/pelican.conf
 
   sed -i -e "s@<php_socket>@${PHP_SOCKET}@g" "$CONFIG_PATH_AVAIL"/pelican.conf
 
   case "$OS" in
-  ubuntu | debian)
+  debian | ubuntu)
     ln -sf "$CONFIG_PATH_AVAIL"/pelican.conf "$CONFIG_PATH_ENABL"/pelican.conf
     ;;
   esac
@@ -425,7 +425,6 @@ configure_nginx() {
 }
 
 # --------------- Main functions --------------- #
-
 perform_install() {
   output "Starting installation.. this might take a while!"
   dep_install
@@ -443,6 +442,138 @@ perform_install() {
   return 0
 }
 
-# ------------------- Install ------------------ #
+main() {
+  # Check for existing installation
+  if [ -d "/var/www/pelican" ]; then
+    warning "The script has detected that you already have Pelican panel on your system! You cannot run the script multiple times, it will fail!"
+    echo -e -n "* Are you sure you want to proceed? (y/N): "
+    read -r CONFIRM_PROCEED || true
+    if [[ ! "$CONFIRM_PROCEED" =~ [Yy] ]]; then
+      error "Installation aborted!"
+      exit 1
+    fi
+  fi
 
-perform_install
+  welcome "panel"
+
+  check_os_x86_64
+
+  # Set database credentials
+  output "Database configuration."
+  output ""
+  output "This will be the credentials used for communication between the MySQL"
+  output "database and the panel. You do not need to create the database"
+  output "before running this script, the script will do that for you."
+  output ""
+
+  MYSQL_DB="-"
+  while [[ "$MYSQL_DB" == *"-"* ]]; do
+    required_input MYSQL_DB "Database name (panel): " "" "panel"
+    [[ "$MYSQL_DB" == *"-"* ]] && error "Database name cannot contain hyphens"
+  done
+
+  MYSQL_USER="-"
+  while [[ "$MYSQL_USER" == *"-"* ]]; do
+    required_input MYSQL_USER "Database username (pelican): " "" "pelican"
+    [[ "$MYSQL_USER" == *"-"* ]] && error "Database user cannot contain hyphens"
+  done
+
+  # MySQL password input
+  rand_pw=$(gen_passwd 64)
+  password_input MYSQL_PASSWORD "Password (press enter to use randomly generated password): " "MySQL password cannot be empty" "$rand_pw"
+
+  readarray -t valid_timezones <<<"$(curl -s "$GIT_REPO_URL"/configs/valid_timezones.txt)"
+  output "List of valid timezones here $(hyperlink "https://www.php.net/manual/en/timezones.php")"
+
+  while [ -z "$timezone" ]; do
+    echo -n "* Select timezone [America/Chicago]: "
+    read -r timezone_input
+
+    array_contains_element "$timezone_input" "${valid_timezones[@]}" && timezone="$timezone_input"
+    [ -z "$timezone_input" ] && timezone="America/Chicago"
+  done
+
+  email_input email "Provide the email address that will be used to configure Let's Encrypt and Pelican: " "Email cannot be empty or invalid"
+
+  # Initial admin account
+  email_input user_email "Email address for the initial admin account: " "Email cannot be empty or invalid"
+  required_input user_username "Username for the initial admin account: " "Username cannot be empty"
+  password_input user_password "Password for the initial admin account: " "Password cannot be empty"
+
+  print_brake 72
+
+  # Set FQDN
+  while [ -z "$HOSTNAME" ]; do
+    echo -n "* Set the FQDN of this panel (panel.example.com): "
+    read -r HOSTNAME
+    [ -z "$HOSTNAME" ] && error "FQDN cannot be empty"
+  done
+
+  # Check if SSL is available
+  check_FQDN_SSL
+
+  # Ask if firewall is needed
+  ask_firewall CONFIGURE_FIREWALL
+
+  # Only ask about SSL if it is available
+  if [ "$SSL_AVAILABLE" == true ]; then
+    # Ask if letsencrypt is needed
+    ask_letsencrypt
+    # If it's already true, this should be a no-brainer
+    [ "$CONFIGURE_LETSENCRYPT" == false ] && ask_assume_ssl
+  fi
+
+  # Verify FQDN if user has selected to assume SSL or configure Let's Encrypt
+  [ "$CONFIGURE_LETSENCRYPT" == true ] || [ "$ASSUME_SSL" == true ] && bash <(curl -fsSL "$GIT_REPO_URL"/lib/fqdn.sh) "$HOSTNAME"
+
+  # Summary
+  summary
+
+  # Confirm installation
+  echo -e -n "\n* Initial configuration completed. Continue with installation? (y/N): "
+  read -r CONFIRM
+  if [[ "$CONFIRM" =~ [Yy] ]]; then
+    perform_install
+  else
+    error "Installation aborted."
+    exit 1
+  fi
+}
+
+summary() {
+  print_brake 62
+  output "Pelican panel $PELICAN_PANEL_VERSION with nginx on $OS"
+  output "Database name: $MYSQL_DB"
+  output "Database user: $MYSQL_USER"
+  output "Database password: (censored)"
+  output "Timezone: $timezone"
+  output "Email: $email"
+  output "User email: $user_email"
+  output "Username: $user_username"
+  output "User password: (censored)"
+  output "Hostname/FQDN: $HOSTNAME"
+  output "Configure Firewall? $CONFIGURE_FIREWALL"
+  output "Configure Let's Encrypt? $CONFIGURE_LETSENCRYPT"
+  output "Assume SSL? $ASSUME_SSL"
+  print_brake 62
+}
+
+goodbye() {
+  print_brake 62
+  output "Panel installation completed"
+  output ""
+
+  [ "$CONFIGURE_LETSENCRYPT" == true ] && output "Your panel should be accessible from $(hyperlink "$HOSTNAME")"
+  [ "$ASSUME_SSL" == true ] && [ "$CONFIGURE_LETSENCRYPT" == false ] && output "You have opted in to use SSL, but not via Let's Encrypt automatically. Your panel will not work until SSL has been configured."
+  [ "$ASSUME_SSL" == false ] && [ "$CONFIGURE_LETSENCRYPT" == false ] && output "Your panel should be accessible from $(hyperlink "$HOSTNAME")"
+
+  output ""
+  output "Installation is using nginx on $OS"
+  output "Thank you for using this script."
+  [ "$CONFIGURE_FIREWALL" == false ] && echo -e "* ${COLOR_RED}Note${COLOR_NC}: If you haven't configured the firewall: 80/443 (HTTP/HTTPS) is required to be open!"
+  print_brake 62
+}
+
+# Run script
+main
+goodbye

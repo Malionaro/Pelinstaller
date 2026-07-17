@@ -1,0 +1,45 @@
+x-common:
+  panel:
+    &panel-environment
+    APP_URL: "<app_url>"
+    LE_EMAIL: "<le_email>"
+    APP_DEBUG: "false"
+    APP_ENV: "production"
+    APP_ENVIRONMENT_ONLY: "false"
+    APP_INSTALLED: "true"
+  mail:
+    &mail-environment
+    MAIL_DRIVER: "log"
+
+services:
+  panel:
+    image: ghcr.io/pelican-dev/panel:latest
+    restart: unless-stopped
+    networks:
+      - default
+    ports:
+      - "80:80"
+      - "443:443"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - "pelican-data:/pelican-data"
+      - "pelican-logs:/var/www/html/storage/logs"
+      - type: volume
+        source: pelican-data
+        target: /var/www/html/plugins
+        volume:
+          subpath: plugins
+    environment:
+      <<: [*panel-environment, *mail-environment]
+      XDG_DATA_HOME: /pelican-data
+
+volumes:
+  pelican-data:
+  pelican-logs:
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
