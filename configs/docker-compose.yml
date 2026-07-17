@@ -31,6 +31,7 @@ services:
     image: redis:alpine
     restart: always
   panel:
+    user: "0:0"
     image: ghcr.io/pelican-dev/panel:latest
     restart: unless-stopped
     networks:

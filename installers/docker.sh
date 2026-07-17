@@ -107,7 +107,7 @@ configure_panel() {
   output "Waiting for the panel and database to finish configuring .."
   local ready=false
   for _ in $(seq 1 60); do
-    if $DC exec -T panel php artisan migrate --seed --force >/dev/null 2>&1; then
+    if $DC exec -T panel php artisan migrate:status >/dev/null 2>&1; then
       ready=true
       break
     fi
