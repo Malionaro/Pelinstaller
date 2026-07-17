@@ -105,10 +105,13 @@ compose_up() {
 # ------------------ Migrate + admin user ------------------ #
 configure_panel() {
   output "Waiting for the panel and database to finish configuring .."
-  local ready=false status
+  local ready=false
   for _ in $(seq 1 60); do
-    status="$($DC exec -T panel php artisan migrate:status 2>/dev/null || true)"
-    if [ -n "$status" ] && ! echo "$status" | grep -qi pending; then
+    if $DC exec -T panel php artisan p:user:make \
+        --email="$EMAIL" \
+        --username="admin" \
+        --password="$USER_PASSWORD" \
+        --admin=1 >/dev/null 2>&1; then
       ready=true
       break
     fi
@@ -119,13 +122,6 @@ configure_panel() {
     error "Panel did not configure in time. Check logs with 'cd $INSTALL_DIR && $DC logs panel'."
     exit 1
   fi
-
-  output "Creating admin user .."
-  $DC exec -T panel php artisan p:user:make \
-    --email="$EMAIL" \
-    --username="admin" \
-    --password="$USER_PASSWORD" \
-    --admin=1
 
   success "Panel configured"
 }
