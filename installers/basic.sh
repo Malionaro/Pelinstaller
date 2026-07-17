@@ -235,7 +235,7 @@ configure_env() {
   sed -i "s|^APP_INSTALLED=false|APP_INSTALLED=true|" .env
 
   # Configure database and backup credentials
-  php artisan p:environment:database \
+  yes | php artisan p:environment:database \
     --driver="mysql" \
     --host="127.0.0.1" \
     --port="3306" \
@@ -253,34 +253,6 @@ configure_env() {
     --username="admin" \
     --password="$USER_PASSWORD" \
     --admin=1
-
-  # Create a server location
-  php artisan p:location:make \
-    --short=Main \
-    --long="Primary location"
-
-  # Create a node
-  php artisan p:node:make \
-    --name="Node01" \
-    --description="First Node" \
-    --fqdn=$HOSTNAME \
-    --public=1 \
-    --locationId=1 \
-    --scheme="http" \
-    --proxy="no" \
-    --maintenance=0 \
-    --maxMemory="$(free -m | awk 'FNR == 2 {print $2}')" \
-    --overallocateMemory=0 \
-    --maxDisk="$(df --total -m | tail -n 1 | awk '{print $2}')" \
-    --overallocateDisk=0 \
-    --uploadSize=100 \
-    --daemonListeningPort=8080 \
-    --daemonSFTPPort=2022 \
-    --daemonBase="/var/lib/pelican/volumes"
-
-  # Fetch wings configuration
-  mkdir -p /etc/pelican
-  echo "$(php artisan p:node:configuration 1)" > /etc/pelican/config.yml
 
   success "Configured environment!"
 }

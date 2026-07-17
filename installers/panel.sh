@@ -144,7 +144,7 @@ configure() {
   sed -i "s|^APP_INSTALLED=false|APP_INSTALLED=true|" .env
 
   # Fill in environment:database credentials automatically
-  php artisan p:environment:database \
+  yes | php artisan p:environment:database \
     --driver="mysql" \
     --host="127.0.0.1" \
     --port="3306" \
