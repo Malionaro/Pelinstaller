@@ -4,13 +4,17 @@
 
 ## Installation
 
-To use the installation scripts, simply run this command as root. The script will ask you whether you would like to install just the panel, just Wings or both.
+1) To get started, it's important to ensure that your machine is freshly reinstalled if you've made any changes to it beforehand.
+2) Point a DNS A-Record to your machine's IP address, like panel.example.com to 192.168.53.72.
+3) To download and run the installer, simply enter the following command into your terminal and follow the prompts:
 
 ```bash
 bash <(curl -Ss https://raw.githubusercontent.com/Zinidia/Pelinstaller/Production/install.sh || wget -O - https://raw.githubusercontent.com/Zinidia/Pelinstaller/Production/install.sh)
 ```
 
 _Note: On some systems, it's required to be already logged in as root before executing the one-line command (where `sudo` is in front of the command does not work)._
+
+⚠️ Troubleshooting: If you encounter any issues during installation or while using Pelican, first check the Pelican logs and review the official [Pelican Troubleshooting Guide](https://pelican.dev/docs/troubleshooting/). If you're still unable to resolve the problem, please open an issue on the [PelInstaller GitHub repository](https://github.com/Zinidia/Pelinstaller) and share any relevant logs.
 
 Here is a [YouTube Video](https://www.youtube.com/watch?v=E8UJhyUFoHM) that illustrates the installation process.
 
