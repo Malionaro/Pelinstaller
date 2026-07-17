@@ -25,11 +25,7 @@ services:
     volumes:
       - "pelican-data:/pelican-data"
       - "pelican-logs:/var/www/html/storage/logs"
-      - type: volume
-        source: pelican-data
-        target: /var/www/html/plugins
-        volume:
-          subpath: plugins
+      - "pelican-plugins:/var/www/html/plugins"
     environment:
       <<: [*panel-environment, *mail-environment]
       XDG_DATA_HOME: /pelican-data
@@ -37,6 +33,7 @@ services:
 volumes:
   pelican-data:
   pelican-logs:
+  pelican-plugins:
 
 networks:
   default:

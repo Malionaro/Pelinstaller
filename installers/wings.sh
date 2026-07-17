@@ -285,13 +285,8 @@ main() {
       INSTALL_MARIADB=true
     fi
 
-    MYSQL_DBHOST_USER="-"
-    while [[ "$MYSQL_DBHOST_USER" == *"-"* ]]; do
-      required_input MYSQL_DBHOST_USER "Database host username (pelicanuser): " "" "pelicanuser"
-      [[ "$MYSQL_DBHOST_USER" == *"-"* ]] && error "Database user cannot contain hyphens"
-    done
-
-    password_input MYSQL_DBHOST_PASSWORD "Database host password: " "Password cannot be empty"
+    MYSQL_DBHOST_USER="pelicanuser"
+    MYSQL_DBHOST_PASSWORD="$(gen_passwd 64)"
   fi
 
   ask_letsencrypt

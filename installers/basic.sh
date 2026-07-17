@@ -304,7 +304,7 @@ pelican_queue_systemd() {
     ;;
   esac
 
-  php /var/www/pelican/artisan p:environment:queue-service --user="$web_user" --group="$web_user" --overwrite
+  php /var/www/pelican/artisan p:environment:queue-service --user="$web_user" --group="$web_user" --overwrite -n
 
   systemctl daemon-reload
   systemctl enable pelican-queue.service
@@ -542,34 +542,26 @@ main() {
   welcome "basic"
   check_os_x86_64
 
-  # Confirm installation
-  echo -e -n "\n* Initial configuration completed. Continue with installation? (y/N): "
-  read -r CONFIRM || true
-  if [[ "$CONFIRM" =~ [Yy] ]]; then
-    # --------------- Execute functions --------------- #
-    output "Starting Pelican Panel installation.. this might take a while!"
-    panel_deps
-    install_composer
-    panel_dl
-    install_composer_deps
-    create_db_user "pelican" "$MYSQL_PASSWORD"
-    create_db "panel" "pelican"
-    configure_env
-    insert_cronjob
-    pelican_queue_systemd
-    configure_nginx
-    install_firewall
-    firewall_ports "22 80 443 8080 2022"
-    output "Installing Pelican Wings .."
-    wings_deps
-    wings_dl
-    wings_systemd
-    set_folder_permissions
-    summary
-  else
-    error "Installation aborted."
-    exit 1
-  fi
+  # --------------- Execute functions --------------- #
+  output "Starting Pelican Panel installation.. this might take a while!"
+  panel_deps
+  install_composer
+  panel_dl
+  install_composer_deps
+  create_db_user "pelican" "$MYSQL_PASSWORD"
+  create_db "panel" "pelican"
+  configure_env
+  insert_cronjob
+  pelican_queue_systemd
+  configure_nginx
+  install_firewall
+  firewall_ports "22 80 443 8080 2022"
+  output "Installing Pelican Wings .."
+  wings_deps
+  wings_dl
+  wings_systemd
+  set_folder_permissions
+  summary
 }
 
 # Run script
