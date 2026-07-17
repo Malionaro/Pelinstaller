@@ -19,7 +19,7 @@ fi
 check_os_x86_64
 
 # ------------------ Variables ----------------- #
-INSTALL_DIR="${INSTALL_DIR:-/opt/pelican-docker}"
+INSTALL_DIR="${INSTALL_DIR:-/opt/pelican}"
 COMPOSE_URL="$GIT_REPO_URL/configs/docker-compose.yml"
 
 # Default settings
@@ -28,6 +28,9 @@ EMAIL="${EMAIL:-admin@example.com}"
 USER_PASSWORD="${USER_PASSWORD:-$(gen_passwd 32)}"
 APP_URL="${APP_URL:-http://$HOSTNAME}"
 LE_EMAIL="${LE_EMAIL:-}"
+DB_PASSWORD="${DB_PASSWORD:-$(gen_passwd 64)}"
+DB_ROOT_PASSWORD="${DB_ROOT_PASSWORD:-$(gen_passwd 64)}"
+TIMEZONE="${TIMEZONE:-$(cat /etc/timezone 2>/dev/null || echo UTC)}"
 
 # ------------ User input functions ------------ #
 collect_input() {
@@ -55,7 +58,7 @@ collect_input() {
     LE_EMAIL=""
   fi
 
-  password_input USER_PASSWORD "Admin Password (press enter to use randomly generated password): " "" "$(gen_passwd 32)"
+  password_input USER_PASSWORD "Password for the admin account (blank for auto-generate): " "" "$(gen_passwd 32)"
 }
 
 # ------------------ Docker engine ------------------ #
@@ -79,6 +82,9 @@ write_compose() {
   sed -i \
     -e "s|<app_url>|$APP_URL|g" \
     -e "s|<le_email>|$LE_EMAIL|g" \
+    -e "s|<timezone>|$TIMEZONE|g" \
+    -e "s|<db_password>|$DB_PASSWORD|g" \
+    -e "s|<db_root_password>|$DB_ROOT_PASSWORD|g" \
     "$INSTALL_DIR/docker-compose.yml"
 
   success "Compose file written"

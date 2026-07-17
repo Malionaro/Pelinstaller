@@ -212,7 +212,7 @@ install_pelican_queue() {
     ;;
   esac
 
-  php /var/www/pelican/artisan p:environment:queue-service --user="$web_user" --group="$web_user" --overwrite
+  php /var/www/pelican/artisan p:environment:queue-service --user="$web_user" --group="$web_user" --overwrite -n
 
   systemctl daemon-reload
   systemctl enable pelican-queue.service
@@ -467,19 +467,19 @@ main() {
   output "List of valid timezones here $(hyperlink "https://www.php.net/manual/en/timezones.php")"
 
   while [ -z "$timezone" ]; do
-    echo -n "* Select timezone [America/Chicago]: "
+    echo -n "* Select timezone [UTC]: "
     read -r timezone_input
 
     array_contains_element "$timezone_input" "${valid_timezones[@]}" && timezone="$timezone_input"
-    [ -z "$timezone_input" ] && timezone="America/Chicago"
+    [ -z "$timezone_input" ] && timezone="UTC"
   done
 
   email_input email "Provide the email address that will be used to configure Let's Encrypt and Pelican: " "Email cannot be empty or invalid"
 
   # Initial admin account
   user_email="$email"
-  required_input user_username "Username for the initial admin account: " "Username cannot be empty"
-  password_input user_password "Password for the initial admin account: " "Password cannot be empty"
+  user_username="admin"
+  password_input user_password "Password for the admin account (blank for auto-generate): " "" "$(gen_passwd 32)"
 
   print_brake 72
 
