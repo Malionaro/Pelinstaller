@@ -107,7 +107,7 @@ configure_panel() {
   output "Waiting for the panel and database to finish configuring .."
   local ready=false status
   for _ in $(seq 1 60); do
-    status="$($DC exec -T panel php artisan migrate:status 2>/dev/null)"
+    status="$($DC exec -T panel php artisan migrate:status 2>/dev/null || true)"
     if [ -n "$status" ] && ! echo "$status" | grep -qi pending; then
       ready=true
       break
