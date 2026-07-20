@@ -55,8 +55,10 @@ List of supported installation setups for panel and Wings (installations support
 |                  | 8       | :red_circle: \*    |             |
 | Rocky Linux      | 8       | :white_check_mark: | 8.5         |
 |                  | 9       | :white_check_mark: | 8.5         |
+|                  | 10      | :white_check_mark: | 8.5         |
 | AlmaLinux        | 8       | :white_check_mark: | 8.5         |
 |                  | 9       | :white_check_mark: | 8.5         |
+|                  | 10      | :white_check_mark: | 8.5         |
 
 _\* Indicates an operating system and release that previously was supported by this script._
 
