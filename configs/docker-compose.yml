@@ -32,7 +32,7 @@ services:
     restart: always
   panel:
     user: "0:0"
-    image: ghcr.io/pelican-dev/panel:latest
+    image: ghcr.io/pelican/panel:latest
     restart: unless-stopped
     networks:
       - default
