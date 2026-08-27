@@ -178,6 +178,22 @@ invalid_ip() {
   echo $?
 }
 
+valid_timezone() {
+  local tz="$1"
+  [ -z "$tz" ] && return 1
+  [ "$tz" == "UTC" ] && return 0
+  [ -f "/usr/share/zoneinfo/$tz" ] && return 0
+  [ -f "/usr/share/zoneinfo/right/$tz" ] && return 0
+  [ -f "/usr/share/zoneinfo/posix/$tz" ] && return 0
+  if command -v timedatectl >/dev/null 2>&1; then
+    timedatectl list-timezones 2>/dev/null | grep -Fxq "$tz" && return 0
+  fi
+  if [[ "$tz" =~ ^[A-Za-z]+/[A-Za-z0-9_\+\-]+(/[A-Za-z0-9_\+\-]+)?$ ]]; then
+    return 0
+  fi
+  return 1
+}
+
 gen_passwd() {
   local length=$1
   local password=""

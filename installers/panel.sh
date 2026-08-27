@@ -141,6 +141,11 @@ configure() {
   # Fill in environment:setup automatically
   php artisan p:environment:setup
   sed -i "s|^APP_URL=.*|APP_URL=${app_url}|" .env
+  if grep -q "^APP_TIMEZONE=" .env; then
+    sed -i "s|^APP_TIMEZONE=.*|APP_TIMEZONE=${timezone}|" .env
+  else
+    echo "APP_TIMEZONE=${timezone}" >> .env
+  fi
   sed -i "s|^APP_INSTALLED=false|APP_INSTALLED=true|" .env
 
   # Fill in environment:database credentials automatically
@@ -463,15 +468,18 @@ main() {
   MYSQL_USER="pelican"
   MYSQL_PASSWORD="$(gen_passwd 64)"
 
-  readarray -t valid_timezones <<<"$(curl -s "$GIT_REPO_URL"/configs/valid_timezones.txt)"
   output "List of valid timezones here $(hyperlink "https://www.php.net/manual/en/timezones.php")"
 
   while [ -z "$timezone" ]; do
     echo -n "* Select timezone [UTC]: "
     read -r timezone_input
+    [ -z "$timezone_input" ] && timezone_input="UTC"
 
-    array_contains_element "$timezone_input" "${valid_timezones[@]}" && timezone="$timezone_input"
-    [ -z "$timezone_input" ] && timezone="UTC"
+    if valid_timezone "$timezone_input"; then
+      timezone="$timezone_input"
+    else
+      error "Invalid timezone '$timezone_input'. Please provide a valid timezone from the PHP list (e.g. Europe/Berlin, America/New_York, UTC)."
+    fi
   done
 
   email_input email "Provide the email address that will be used to configure Let's Encrypt and Pelican: " "Email cannot be empty or invalid"
