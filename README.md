@@ -24,6 +24,7 @@ Here is a [YouTube Video](https://www.youtube.com/watch?v=E8UJhyUFoHM) that illu
 - Automatic installation of the Pelican Wings (Docker, systemd).
 - Panel: (optional) automatic configuration of Let's Encrypt.
 - Panel: (optional) automatic configuration of firewall.
+- Panel: Automatic PHP version upgrade (e.g. to PHP 8.4 or 8.5).
 - Uninstallation support for both panel and wings.
 
 ## Help and support

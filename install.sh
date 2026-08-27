@@ -53,9 +53,9 @@ while [[ $# -gt 0 ]]; do
     --repo=*) REPO="${1#*=}"; shift ;;
     --branch|--source) BRANCH="$2"; shift 2 ;;
     --branch=*|--source=*) BRANCH="${1#*=}"; shift ;;
-    basic|docker|panel|wings|both|uninstall)
+    basic|docker|panel|wings|both|uninstall|upgrade-php)
       MODE="$1"; shift ;;
-    *) error "Unknown argument: '$1'. Expected a mode (basic, docker, panel, wings, both, uninstall) arg --repo or --branch."; exit 1 ;;
+    *) error "Unknown argument: '$1'. Expected a mode (basic, docker, panel, wings, both, uninstall, upgrade-php) arg --repo or --branch."; exit 1 ;;
   esac
 done
 
@@ -109,13 +109,14 @@ run_mode() {
 
 execute_arg() {
   case "$1" in
-    basic)     run_mode "basic" ;;
-    docker)    run_mode "docker" ;;
-    panel)     run_mode "panel" ;;
-    wings)     run_mode "wings" ;;
-    both)      run_mode "panel"; run_mode "wings" ;;
-    uninstall) run_mode "uninstall" ;;
-    *) error "Invalid option '$1'. Expected one of: basic, docker, panel, wings, both, uninstall."; exit 1 ;;
+    basic)       run_mode "basic" ;;
+    docker)      run_mode "docker" ;;
+    panel)       run_mode "panel" ;;
+    wings)       run_mode "wings" ;;
+    both)        run_mode "panel"; run_mode "wings" ;;
+    uninstall)   run_mode "uninstall" ;;
+    upgrade-php) run_mode "upgrade-php" ;;
+    *) error "Invalid option '$1'. Expected one of: basic, docker, panel, wings, both, uninstall, upgrade-php."; exit 1 ;;
   esac
 }
 
@@ -173,8 +174,9 @@ while [ -z "$panel_mode" ]; do
   output "[1] Basic - Zero prompts, development environment (panel + wings, HTTP-only)"
   output "[2] Docker (Recommended) - Docker compose using the official ghcr images"
   output "[3] Bare metal - Standard install without Docker (prompts for FQDN/SSL)"
+  output "[4] Upgrade PHP - Upgrade PHP version for existing bare-metal panel"
 
-  echo -n "* Input 0-3 [0]: "
+  echo -n "* Input 0-4 [0]: "
   read -r action || true
   [ -z "$action" ] && action=0
 
@@ -183,14 +185,15 @@ while [ -z "$panel_mode" ]; do
     1) panel_mode="basic" ;;
     2) panel_mode="docker" ;;
     3) panel_mode="panel" ;;
+    4) panel_mode="upgrade-php" ;;
     *) error "Invalid option" ;;
   esac
 done
 
 # ----------------- Stage 2: Wings install ----------------- #
 wings_mode="skip"
-# Basic mode automatically installs wings
-if [ "$panel_mode" != "basic" ]; then
+# Basic mode and Upgrade mode skip wings prompt
+if [ "$panel_mode" != "basic" ] && [ "$panel_mode" != "upgrade-php" ]; then
   chosen=""
   while [ -z "$chosen" ]; do
     output "Do you want to install Wings (the machine daemon)?"
@@ -211,10 +214,11 @@ fi
 
 # ----------------- Execute selections ----------------- #
 case "$panel_mode" in
-  basic)  run_mode "basic" ;;
-  docker) run_mode "docker" ;;
-  panel)  run_mode "panel" ;;
-  skip)   output "Skipping panel installation." ;;
+  basic)       run_mode "basic" ;;
+  docker)      run_mode "docker" ;;
+  panel)       run_mode "panel" ;;
+  upgrade-php) run_mode "upgrade-php" ;;
+  skip)        output "Skipping panel installation." ;;
 esac
 
 [ "$wings_mode" == "wings" ] && run_mode "wings"
