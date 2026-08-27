@@ -136,8 +136,9 @@ if [ -d "/var/www/pelican" ]; then
     output "[1] Uninstall Pelican - Attempt automated Pelican uninstallation."
     output "[2] Continue Anyway - Ignore warnings and attempt to install Pelican anyway."
     output "[3] Exit Installer - Cancel installation process."
+    output "[4] Upgrade PHP - Upgrade PHP version for your existing Pelican panel."
 
-    echo -n "* Input 1-3: "
+    echo -n "* Input 1-4: "
     read -r action || true
     case "$action" in
       1)
@@ -159,8 +160,14 @@ if [ -d "/var/www/pelican" ]; then
         echo "Exiting installer .."
         exit 1
         ;;
+      4)
+        existing_choice="upgrade-php"
+        echo "Starting PHP upgrade .."
+        run_mode "upgrade-php"
+        exit 0
+        ;;
       *)
-        error "Invalid option. Please input a number between 1 and 3."
+        error "Invalid option. Please input a number between 1 and 4."
         ;;
     esac
   done
