@@ -1,6 +1,6 @@
 # Pelinstaller
 
-[![License: GPL v3](https://img.shields.io/github/license/Zinidia/Pelinstaller)](LICENSE.md)
+[![License: GPL v3](https://img.shields.io/github/license/Malionaro/Pelinstaller)](LICENSE.md)
 
 ## Installation
 
@@ -9,12 +9,12 @@
 3) To download and run the installer, simply enter the following command into your terminal and follow the prompts:
 
 ```bash
-bash <(curl -Ss https://raw.githubusercontent.com/Zinidia/Pelinstaller/Production/install.sh || wget -O - https://raw.githubusercontent.com/Zinidia/Pelinstaller/Production/install.sh)
+bash <(curl -Ss https://raw.githubusercontent.com/Malionaro/Pelinstaller/Production/install.sh || wget -O - https://raw.githubusercontent.com/Malionaro/Pelinstaller/Production/install.sh)
 ```
 
 _Note: On some systems, it's required to be already logged in as root before executing the one-line command (where `sudo` is in front of the command does not work)._
 
-⚠️ Troubleshooting: If you encounter any issues during installation or while using Pelican, first check the Pelican logs and review the official [Pelican Troubleshooting Guide](https://pelican.dev/docs/troubleshooting/). If you're still unable to resolve the problem, please open an issue on the [PelInstaller GitHub repository](https://github.com/Zinidia/Pelinstaller) and share any relevant logs.
+⚠️ Troubleshooting: If you encounter any issues during installation or while using Pelican, first check the Pelican logs and review the official [Pelican Troubleshooting Guide](https://pelican.dev/docs/troubleshooting/). If you're still unable to resolve the problem, please open an issue on the [PelInstaller GitHub repository](https://github.com/Malionaro/Pelinstaller) and share any relevant logs.
 
 Here is a [YouTube Video](https://www.youtube.com/watch?v=E8UJhyUFoHM) that illustrates the installation process.
 
@@ -28,7 +28,7 @@ Here is a [YouTube Video](https://www.youtube.com/watch?v=E8UJhyUFoHM) that illu
 
 ## Help and support
 
-For help and support regarding the script itself and **not the official Pelican project**, create a [Github Issue](https://github.com/Zinidia/Pelinstaller/issues).
+For help and support regarding the script itself and **not the official Pelican project**, create a [Github Issue](https://github.com/Malionaro/Pelinstaller/issues).
 
 ## Supported installations
 

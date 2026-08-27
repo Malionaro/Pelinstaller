@@ -51,7 +51,7 @@ export SUPPORTED=false
 export PANEL_DL_URL="${PANEL_DL_URL:-https://github.com/pelican/panel/releases/latest/download/panel.tar.gz}"
 export WINGS_DL_URL="https://github.com/pelican/wings/releases/latest/download/wings_linux_"
 # Repo arg defaults
-export REPO="${REPO:-Zinidia/Pelinstaller}"
+export REPO="${REPO:-Malionaro/Pelinstaller}"
 export BRANCH="${BRANCH:-Production}"
 export GIT_REPO_URL="${GIT_REPO_URL:-https://raw.githubusercontent.com/$REPO/$BRANCH}"
 
